@@ -1,0 +1,17 @@
+{
+  "name": "factorio-midi-player",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack watch"
+  },
+  "dependencies": {
+    "midi-json-parser": "^8.1.55",
+    "pako": "^2.1.0",
+    "typescript": "^5.6.3",
+    "webpack": "^5.95.0",
+    "ts-loader": "^9.5.1",
+    "@types/pako": "^2.0.3",
+    "webpack-cli": "^5.1.4"
+  }
+}
