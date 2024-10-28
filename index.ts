@@ -1,5 +1,5 @@
 import { parseArrayBuffer } from 'midi-json-parser';
-import { genKeys, genBPObject, encodeBP } from './factorio';
+import { genCell, genBPObject, encodeBP, MAX_SIGNAL_COUNT } from './factorio';
 
 function init() {
    const buttonElement = document.getElementById('generate-button');
@@ -13,7 +13,14 @@ function init() {
          }
       };
    }
-   console.log(encodeBP(genBPObject([genKeys()])));
+   const keyRom = [...Array(MAX_SIGNAL_COUNT)].map((_, i) => i+1);
+   const keyBP = encodeBP(genBPObject([genCell(keyRom)]));
+
+   const dataRom = [[1, 1], [2, 2], [1, 3], [2, 4]].map(v => v[0] * 60 << 8 | v[1]);
+   console.log(dataRom);
+   const dataBP = encodeBP(genBPObject([genCell(dataRom)]));
+
+   document.documentElement.innerHTML += dataBP;
 }
 
 window.onload = init;
