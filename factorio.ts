@@ -146,3 +146,11 @@ export function encodeBP(blueprint: BluePrint): string {
    const b64 = btoa(String.fromCharCode.apply(null, compressed));
    return '0' + b64;
 }
+
+export function decodeBP(blueprint: string): BluePrint {
+   const binary = atob(blueprint.slice(1));
+   const compressed = Uint8Array.from(binary, c => c.charCodeAt(0));
+   const inflated = pako.inflate(compressed);
+   const decoded = String.fromCharCode.apply(null, inflated);
+   return JSON.parse(decoded);
+}
