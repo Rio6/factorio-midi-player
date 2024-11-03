@@ -34,6 +34,7 @@ export function genCell(
    content: number[],
    ignore: {[type: string]: string[]} = {
       'fluid': [
+         'fluid-unknown',
          'parameter-0',
          'parameter-1',
          'parameter-2',
@@ -46,6 +47,7 @@ export function genCell(
          'parameter-9',
       ],
       'item': [
+         'item-unknown',
          'parameter-0',
          'parameter-1',
          'parameter-2',
@@ -56,6 +58,9 @@ export function genCell(
          'parameter-7',
          'parameter-8',
          'parameter-9',
+      ],
+      'quality': [
+         'quality-unknown',
       ],
       'virtual': [
          'signal-A',
@@ -73,8 +78,11 @@ export function genCell(
          'signal-fuel-parameter',
          'signal-item-parameter',
          'signal-signal-parameter',
+         'signal-unknown',
       ],
       'recipe': [
+         'item-unknown-recycling',
+         'recipe-unknown',
          'parameter-0',
          'parameter-0-recycling',
          'parameter-1',
@@ -96,6 +104,12 @@ export function genCell(
          'parameter-9',
          'parameter-9-recycling',
       ],
+      'space-location': [
+         'space-location-unknown',
+      ],
+      'asteroid-chunk': [
+         'asteroid-chunk-unknown',
+      ]
    }
 ): BluePrint {
    console.assert(content.length <= MAX_SIGNAL_COUNT, `content ${content.length} exceeds ${MAX_SIGNAL_COUNT}`);
