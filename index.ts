@@ -1,4 +1,3 @@
-import { genCell, genBPObject, encodeBP, MAX_SIGNAL_COUNT } from './factorio';
 import { midiToBP } from './converter';
 
 function init() {
@@ -15,9 +14,6 @@ function init() {
          }
       };
    }
-
-   const keyRom = [...Array(MAX_SIGNAL_COUNT)].map((_, i) => i+1);
-   console.log(encodeBP(genBPObject([genCell(keyRom)])));
 }
 
 window.onload = init;

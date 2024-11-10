@@ -1,11 +1,9 @@
 import pako from 'pako';
 import signals from './signals';
 
-type BluePrint = {[key: string]: any};
+export type BluePrint = any;
 
-export const MAX_SIGNAL_COUNT = 1000;
-
-export function genBPObject(objects: BluePrint): BluePrint {
+export function genBPEntity(entities: BluePrint[]): BluePrint {
    const blueprint: BluePrint = {
       "blueprint": {
          "icons": [
@@ -21,9 +19,9 @@ export function genBPObject(objects: BluePrint): BluePrint {
          "item": "blueprint"
       }
    };
-   for(let [i, obj] of objects.entries()) {
+   for(let [i, ent] of entities.entries()) {
       blueprint.blueprint.entities.push({
-         ...obj,
+         ...ent,
          index: i,
       });
    }
@@ -33,104 +31,20 @@ export function genBPObject(objects: BluePrint): BluePrint {
 export function genCell(
    content: number[],
    ignore: {[type: string]: string[]} = {
-      'fluid': [
-         'fluid-unknown',
-         'parameter-0',
-         'parameter-1',
-         'parameter-2',
-         'parameter-3',
-         'parameter-4',
-         'parameter-5',
-         'parameter-6',
-         'parameter-7',
-         'parameter-8',
-         'parameter-9',
-      ],
-      'item': [
-         'item-unknown',
-         'parameter-0',
-         'parameter-1',
-         'parameter-2',
-         'parameter-3',
-         'parameter-4',
-         'parameter-5',
-         'parameter-6',
-         'parameter-7',
-         'parameter-8',
-         'parameter-9',
-      ],
-      'quality': [
-         'quality-unknown',
-      ],
       'virtual': [
          'signal-A',
-         'signal-B',
-         'signal-C',
-         'signal-D',
-         'signal-E',
-         'signal-F',
-         'signal-G',
-         'signal-H',
-         'signal-anything',
-         'signal-each',
-         'signal-everything',
-         'signal-fluid-parameter',
-         'signal-fuel-parameter',
-         'signal-item-parameter',
-         'signal-signal-parameter',
-         'signal-unknown',
       ],
-      'recipe': [
-         'item-unknown-recycling',
-         'recipe-unknown',
-         'parameter-0',
-         'parameter-0-recycling',
-         'parameter-1',
-         'parameter-1-recycling',
-         'parameter-2',
-         'parameter-2-recycling',
-         'parameter-3',
-         'parameter-3-recycling',
-         'parameter-4',
-         'parameter-4-recycling',
-         'parameter-5',
-         'parameter-5-recycling',
-         'parameter-6',
-         'parameter-6-recycling',
-         'parameter-7',
-         'parameter-7-recycling',
-         'parameter-8',
-         'parameter-8-recycling',
-         'parameter-9',
-         'parameter-9-recycling',
-      ],
-      'space-location': [
-         'space-location-unknown',
-      ],
-      'asteroid-chunk': [
-         'asteroid-chunk-unknown',
-      ]
    }
-): BluePrint {
-   console.assert(content.length <= MAX_SIGNAL_COUNT, `content ${content.length} exceeds ${MAX_SIGNAL_COUNT}`);
+): [BluePrint, number] {
    const keys: BluePrint = {
-      "entity_number": 1,
-      "name": "constant-combinator",
-      "position": {
-         "x": 0,
-         "y": 0
-      },
-      "control_behavior": {
-         "sections": {
-            "sections": [
-               {
-                  "index": 1,
-                  "filters": [
-                  ]
-               }
-            ]
-         },
-         "is_on": true
+      "sections": {
+         "sections": [
+            {
+               "index": 1,
+               "filters": [
+               ]
+            }
+         ]
       }
    };
    let index = 0;
@@ -139,7 +53,7 @@ export function genCell(
          if(ignore[signalType] && (ignore[signalType][0] == '*' || ignore[signalType].includes(signal))) {
             continue;
          }
-         keys.control_behavior.sections.sections[0].filters.push({
+         keys.sections.sections[0].filters.push({
             "index": index+1,
             "type": signalType,
             "name": signal,
@@ -152,12 +66,23 @@ export function genCell(
       }
       if(index >= content.length) break;
    }
-   return keys;
+   return [keys, index];
+}
+
+export function getEntitiesByDescription(bp: BluePrint, name: string) {
+   return bp.blueprint.entities.filter((ent: BluePrint) => ent.player_description == name);
+}
+
+export function filterBP(bp: BluePrint, filter: ((ent: BluePrint) => boolean) | null) {
+   const bpf = structuredClone(bp);
+   if(filter == null) return bpf;
+   bpf.blueprint.entities = bpf.blueprint.entities.filter(filter);
+   return bpf;
 }
 
 export function encodeBP(blueprint: BluePrint): string {
    const compressed = pako.deflate(JSON.stringify(blueprint));
-   const b64 = btoa(String.fromCharCode.apply(null, compressed));
+   const b64 = btoa(String.fromCodePoint.apply(null, compressed));
    return '0' + b64;
 }
 
@@ -165,6 +90,6 @@ export function decodeBP(blueprint: string): BluePrint {
    const binary = atob(blueprint.slice(1));
    const compressed = Uint8Array.from(binary, c => c.charCodeAt(0));
    const inflated = pako.inflate(compressed);
-   const decoded = String.fromCharCode.apply(null, inflated);
+   const decoded = new TextDecoder('UTF-8').decode(inflated);
    return JSON.parse(decoded);
 }
