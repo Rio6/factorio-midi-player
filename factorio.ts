@@ -33,6 +33,7 @@ export function genCell(
    ignore: {[type: string]: string[]} = {
       'virtual': [
          'signal-A',
+         'signal-B',
       ],
    }
 ): [BluePrint, number] {
@@ -69,14 +70,20 @@ export function genCell(
    return [keys, index];
 }
 
-export function getEntitiesByDescription(bp: BluePrint, name: string) {
-   return bp.blueprint.entities.filter((ent: BluePrint) => ent.player_description == name);
+export function getEntityByDescription(bp: BluePrint, name: string): BluePrint {
+   return bp.blueprint.entities.filter((ent: BluePrint) => ent.player_description == name)[0];
 }
 
 export function filterBP(bp: BluePrint, filter: ((ent: BluePrint) => boolean) | null) {
    const bpf = structuredClone(bp);
    if(filter == null) return bpf;
+
    bpf.blueprint.entities = bpf.blueprint.entities.filter(filter);
+
+   const ids = bpf.blueprint.entities.map((ent: BluePrint) => ent.entity_number);
+   bpf.blueprint.wires = bpf.blueprint.wires.filter((wire: [number, number, number, number]) =>
+      ids.includes(wire[0]) && ids.includes(wire[2]));
+
    return bpf;
 }
 

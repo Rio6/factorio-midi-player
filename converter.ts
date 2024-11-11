@@ -25,15 +25,20 @@ const FACTORIO_NOTE_MAX = 48;
  */
 
 export async function midiToBP(data: ArrayBuffer): Promise<string> {
-   const maxEntityID = Math.max(...musicBoxBPTemplate.blueprint.entities.map((ent: BluePrint) => ent.entity_number)) + 1;
    const musicBoxBP = factorio.filterBP(
       musicBoxBPTemplate,
-      ent => ['key', 'controller'].includes(ent.player_description)
+      ent => ['key', 'controller', 'controller-misc'].includes(ent.player_description)
    );
 
+   let maxEntityID = 0;
+   let offsetX = 0;
+
    const [keyCell, _] = factorio.genCell([...Array(2000)].map((_, i) => i+1));
-   const keyEnt = factorio.getEntitiesByDescription(musicBoxBP, 'key')[0];
+   const keyEnt = factorio.getEntityByDescription(musicBoxBP, 'key');
    keyEnt.control_behavior = keyCell;
+
+   let lastKey = keyEnt;
+   let lastControl = factorio.getEntityByDescription(musicBoxBP, 'controller');
 
    const midi = await parseArrayBuffer(data);
    let tempo = 500000;
@@ -71,73 +76,48 @@ export async function midiToBP(data: ArrayBuffer): Promise<string> {
          }
       }
 
-      if(notes.length < 100) continue;
-      const trackBP = generateTrack(notes);
-      musicBoxBP.blueprint.entities.push(...trackBP.blueprint.entities);
-      musicBoxBP.blueprint.wires.push(...trackBP.blueprint.wires);
-      break;
+      if(notes.length === 0) continue;
+
+      const trackBP = factorio.filterBP(
+         musicBoxBPTemplate,
+         ent => ['rom', 'key-port', 'control-port', 'player'].includes(ent.player_description) || ent.name === 'programmable-speaker'
+      );
+
+      const data = notes.map(({delay, note}) => delay << 8 | note);
+      const [cell, signalCount] = factorio.genCell(data);
+      console.assert(data.length <= signalCount, `too many notes in a track ${data.length} / ${signalCount}`);
+
+      const cellEnt = factorio.getEntityByDescription(trackBP, 'rom');
+      cellEnt.control_behavior = cell;
+
+      let maxTrackId = 0;
+      for(const ent of trackBP.blueprint.entities) {
+         maxTrackId = Math.max(maxTrackId, ent.entity_number);
+         ent.entity_number += maxEntityID;
+         ent.position.x += offsetX;
+         musicBoxBP.blueprint.entities.push(ent);
+      }
+
+      for(const wire of trackBP.blueprint.wires) {
+         wire[0] += maxEntityID;
+         wire[2] += maxEntityID;
+         musicBoxBP.blueprint.wires.push(wire);
+      }
+
+      const keyPort = factorio.getEntityByDescription(trackBP, 'key-port');
+      const controlPort = factorio.getEntityByDescription(trackBP, 'control-port');
+      musicBoxBP.blueprint.wires.push(
+         [lastKey.entity_number, 1, keyPort.entity_number, 1],
+         [lastControl.entity_number, 2, controlPort.entity_number, 2],
+      );
+      lastKey = keyPort;
+      lastControl = controlPort;
+
+      maxEntityID += maxTrackId;
+      offsetX -= 2;
    }
 
    return factorio.encodeBP(musicBoxBP);
-}
-
-function generateTrack(notes: { delay: number, note: number }[]): BluePrint {
-   const trackBP = factorio.filterBP(
-      musicBoxBPTemplate,
-      ent => ['rom', 'port', 'player'].includes(ent.player_description) || ent.name === 'programmable-speaker'
-   );
-
-   let entityID = Math.max(...trackBP.blueprint.entities.map((ent: BluePrint) => ent.entity_number)) + 1;
-   let lastCell = null;
-   let lastAddr = null;
-   let addrBase  = 0;
-
-   let data = notes.map(({delay, note}) => delay << 8 | note);
-   while(data.length > 0) {
-      const [cell, signalCount] = factorio.genCell(data);
-
-      let cellEnt = null;
-      let addrEnt = null;
-
-      if(lastCell == null || lastAddr == null) {
-         for(let ent of factorio.getEntitiesByDescription(trackBP, 'rom')) {
-            if(ent.name == 'constant-combinator') {
-               cellEnt = ent;
-            } else if(ent.name == 'decider-combinator') {
-               addrEnt = ent;
-            }
-         }
-      } else {
-         cellEnt = structuredClone(lastCell);
-         cellEnt.entity_number = entityID++;
-         cellEnt.position.x = lastAddr.position.x;
-         cellEnt.position.y = lastAddr.position.y - 1.5;
-
-         addrEnt = structuredClone(lastAddr);
-         addrEnt.entity_number = entityID++;
-         addrEnt.position.x = lastCell.position.x;
-         addrEnt.position.y = lastCell.position.y - 1.5;
-
-         trackBP.blueprint.entities.push(cellEnt, addrEnt);
-         trackBP.blueprint.wires.push(
-            [lastAddr.entity_number, 1, addrEnt.entity_number, 1],
-            [lastAddr.entity_number, 4, addrEnt.entity_number, 4],
-            [cellEnt.entity_number,  2, addrEnt.entity_number, 2],
-         );
-      }
-
-      cellEnt.control_behavior = cell;
-      addrEnt.control_behavior.decider_conditions.conditions[1].constant = addrBase;
-      addrEnt.control_behavior.decider_conditions.conditions[2].constant = addrBase + signalCount;
-
-      lastAddr = addrEnt;
-      lastCell = cellEnt;
-
-      addrBase += signalCount;
-      data = data.slice(signalCount);
-   }
-
-   return trackBP;
 }
 
 /*
