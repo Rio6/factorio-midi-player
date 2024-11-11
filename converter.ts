@@ -1,6 +1,6 @@
 import { parseArrayBuffer } from 'midi-json-parser';
 import Track from './track';
-import { IMidiSetTempoEvent, IMidiNoteOnEvent, IMidiProgramChangeEvent } from 'midi-json-parser-worker';
+import { IMidiSetTempoEvent, IMidiNoteOnEvent, IMidiProgramChangeEvent, IMidiControlChangeEvent } from 'midi-json-parser-worker';
 import * as factorio from './factorio';
 import musicBoxBPString from './music-box.bp';
 
@@ -61,6 +61,13 @@ export async function midiToBP(data: ArrayBuffer): Promise<string> {
             const program = (event as IMidiProgramChangeEvent).programChange.programNumber;
             track.setMidiInstrument(program);
          }
+
+         if('controlChange' in event) {
+            const {type, value} = (event as IMidiControlChangeEvent).controlChange;
+            if(type === 7) {
+               track.setMidiVolume(value);
+            }
+         }
       }
 
       if(track.empty()) continue;
@@ -79,6 +86,7 @@ export async function midiToBP(data: ArrayBuffer): Promise<string> {
 
       const speaker = trackBP.blueprint.entities.find((ent: BluePrint) => ent.name === 'programmable-speaker');
       speaker.control_behavior.circuit_parameters.instrument_id = track.getInstrumentID();
+      speaker.parameters.playback_volume = track.getVolume();
 
       let maxTrackId = 0;
       for(const ent of trackBP.blueprint.entities) {

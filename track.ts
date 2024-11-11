@@ -53,6 +53,7 @@ const FACTORIO_INSTRUMENT_ID: {[instrument in Instrument]: number} = {
 export default class Track {
    instrument = Instrument.Piano;
    notes: [number, number][] = [];
+   volume = 1;
 
    push(note: number, delay: number) {
       this.notes.push([note, delay]);
@@ -83,8 +84,16 @@ export default class Track {
       return FACTORIO_INSTRUMENT_ID[this.instrument];
    }
 
+   getVolume(): number {
+      return this.volume;
+   }
+
    setMidiInstrument(program: number) {
       this.instrument = midiToFactorioInstrument(program);
+   }
+
+   setMidiVolume(volume: number) {
+      this.volume = volume / 127;
    }
 
    empty(): boolean {
