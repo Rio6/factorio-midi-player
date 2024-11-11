@@ -88,8 +88,8 @@ export default class Track {
       return this.volume;
    }
 
-   setMidiInstrument(program: number) {
-      this.instrument = midiToFactorioInstrument(program);
+   setMidiInstrument(program: number, channel: number) {
+      this.instrument = midiToFactorioInstrument(program, channel);
    }
 
    setMidiVolume(volume: number) {
@@ -102,161 +102,162 @@ export default class Track {
 
 }
 
-function midiToFactorioInstrument(program: number) {
+function midiToFactorioInstrument(program: number, channel: number) {
+   if(channel == 9) {
+      return Instrument.DrumKit;
+   }
+
    switch(program) {
-      case 0:
-         return Instrument.DrumKit;
+      case 0: // Acoustic Grand Piano
+      case 1: // Bright Acoustic Piano
+      case 2: // Electric Grand Piano
+      case 3: // Honky-tonk Piano
+         return Instrument.Piano;
 
-      case 1: // Acoustic Grand Piano
-      case 2: // Bright Acoustic Piano
-      case 3: // Electric Grand Piano
-      case 4: // Honky-tonk Piano
+      case 6: // Harpsichord
+      case 7: // Clavinet
+      case 15: // Dulcimer
+      case 24: // Acoustic Guitar (nylon)
+      case 25: // Acoustic Guitar (steel)
+      case 26: // Electric Guitar (jazz)
+      case 27: // Electric Guitar (clean)
+      case 28: // Electric Guitar (muted)
+      case 45: // Pizzicato Strings
+      case 46: // Orchestral Harp
+      case 104: // Sitar
+      case 105: // Banjo
+      case 106: // Shamisen
+      case 107: // Koto
+      case 108: // Kalimba
          return Instrument.PluckedString;
 
-      case 7: // Harpsichord
-      case 8: // Clavinet
-      case 16: // Dulcimer
-      case 25: // Acoustic Guitar (nylon)
-      case 26: // Acoustic Guitar (steel)
-      case 27: // Electric Guitar (jazz)
-      case 28: // Electric Guitar (clean)
-      case 29: // Electric Guitar (muted)
-      case 46: // Pizzicato Strings
-      case 47: // Orchestral Harp
-      case 105: // Sitar
-      case 106: // Banjo
-      case 107: // Shamisen
-      case 108: // Koto
-      case 109: // Kalimba
-         return Instrument.PluckedString;
-
-      case 9: // Celesta
-      case 15: // Tubular Bells
+      case 8: // Celesta
+      case 14: // Tubular Bells
          return Instrument.Celesta;
 
-      case 10: // Glockenspiel
-      case 11: // Music Box
-      case 12: // Vibraphone
-      case 13: // Marimba
-      case 14: // Xylophone
-      case 113: // Tinkle Bell
+      case 9: // Glockenspiel
+      case 10: // Music Box
+      case 11: // Vibraphone
+      case 12: // Marimba
+      case 13: // Xylophone
+      case 112: // Tinkle Bell
          return Instrument.Vibraphone;
 
+      case 4: // Electric Piano case 0: //
       case 5: // Electric Piano case 1: //
-      case 6: // Electric Piano case 2: //
-      case 17: // Drawbar Organ
-      case 18: // Percussive Organ
-      case 19: // Rock Organ
-      case 20: // Church Organ
-      case 21: // Reed Organ
-      case 33: // Acoustic Bass
-      case 34: // Electric Bass (finger)
-      case 35: // Electric Bass (pick)
-      case 36: // Fretless Bass
+      case 16: // Drawbar Organ
+      case 17: // Percussive Organ
+      case 18: // Rock Organ
+      case 19: // Church Organ
+      case 20: // Reed Organ
+      case 32: // Acoustic Bass
+      case 33: // Electric Bass (finger)
+      case 34: // Electric Bass (pick)
+      case 35: // Fretless Bass
+      case 36: // Slap Bass case 0: //
       case 37: // Slap Bass case 1: //
-      case 38: // Slap Bass case 2: //
+      case 38: // Synth Bass case 0: //
       case 39: // Synth Bass case 1: //
-      case 40: // Synth Bass case 2: //
-      case 118: // Melodic Tom
-      case 119: // Synth Drum
+      case 117: // Melodic Tom
+      case 118: // Synth Drum
          return Instrument.Bass;
 
-      case 41: // Violin
-      case 42: // Viola
-      case 43: // Cello
-      case 44: // Contrabass
-      case 45: // Tremolo Strings
-      case 57: // Trumpet
-      case 58: // Trombone
-      case 59: // Tuba
-      case 60: // Muted Trumpet
-      case 61: // French Horn
-      case 62: // Brass Section
+      case 40: // Violin
+      case 41: // Viola
+      case 42: // Cello
+      case 43: // Contrabass
+      case 44: // Tremolo Strings
+      case 56: // Trumpet
+      case 57: // Trombone
+      case 58: // Tuba
+      case 59: // Muted Trumpet
+      case 60: // French Horn
+      case 61: // Brass Section
+      case 62: // Synth Brass case 0: //
       case 63: // Synth Brass case 1: //
-      case 64: // Synth Brass case 2: //
-      case 65: // Soprano Sax
-      case 66: // Alto Sax
-      case 67: // Tenor Sax
-      case 68: // Baritone Sax
-      case 69: // Oboe
-      case 70: // English Horn
-      case 71: // Bassoon
-      case 72: // Clarinet
-      case 81: // Lead case 1: // (square)
-      case 110: // Bag pipe
-      case 111: // Fiddle
+      case 64: // Soprano Sax
+      case 65: // Alto Sax
+      case 66: // Tenor Sax
+      case 67: // Baritone Sax
+      case 68: // Oboe
+      case 69: // English Horn
+      case 70: // Bassoon
+      case 71: // Clarinet
+      case 80: // Lead case 0: // (square)
+      case 109: // Bag pipe
+      case 110: // Fiddle
          return Instrument.Square;
 
-      case 30: // Overdriven Guitar
-      case 31: // Distortion Guitar
-      case 32: // Guitar harmonics
-      case 83: // Lead case 3: // (calliope)
-      case 84: // Lead case 4: // (chiff)
-      case 85: // Lead case 5: // (charang)
-      case 86: // Lead case 6: // (voice)
-      case 87: // Lead case 7: // (fifths)
-      case 88: // Lead case 8: // (bass + lead)
+      case 29: // Overdriven Guitar
+      case 30: // Distortion Guitar
+      case 31: // Guitar harmonics
+      case 82: // Lead case 2: // (calliope)
+      case 83: // Lead case 3: // (chiff)
+      case 84: // Lead case 4: // (charang)
+      case 85: // Lead case 5: // (voice)
+      case 86: // Lead case 6: // (fifths)
+      case 87: // Lead case 7: // (bass + lead)
          return Instrument.Lead;
 
-      case 48: // Timpani
-      case 89: // Pad case 1: // (new age)
-      case 90: // Pad case 2: // (warm)
-      case 91: // Pad case 3: // (polysynth)
-      case 92: // Pad case 4: // (choir)
-      case 93: // Pad case 5: // (bowed)
-      case 94: // Pad case 6: // (metallic)
-      case 95: // Pad case 7: // (halo)
-      case 96: // Pad case 8: // (sweep)
-      case 99: // FX case 3: // (crystal)
-      case 114: // Agogo
-      case 115: // Steel Drums
+      case 47: // Timpani
+      case 88: // Pad case 0: // (new age)
+      case 89: // Pad case 1: // (warm)
+      case 90: // Pad case 2: // (polysynth)
+      case 91: // Pad case 3: // (choir)
+      case 92: // Pad case 4: // (bowed)
+      case 93: // Pad case 5: // (metallic)
+      case 94: // Pad case 6: // (halo)
+      case 95: // Pad case 7: // (sweep)
+      case 98: // FX case 2: // (crystal)
+      case 113: // Agogo
+      case 114: // Steel Drums
          return Instrument.SteelDrum;
 
-      case 22: // Accordion
-      case 23: // Harmonica
-      case 24: // Tango Accordion
+      case 21: // Accordion
+      case 22: // Harmonica
+      case 23: // Tango Accordion
+      case 48: // String Ensemble case 0: //
       case 49: // String Ensemble case 1: //
-      case 50: // String Ensemble case 2: //
+      case 50: // Synth Strings case 0: //
       case 51: // Synth Strings case 1: //
-      case 52: // Synth Strings case 2: //
-      case 53: // Choir Aahs
-      case 54: // Voice Oohs
-      case 55: // Synth Voice
-      case 56: // Orchestra Hit
-      case 73: // Piccolo
-      case 74: // Flute
-      case 75: // Recorder
-      case 76: // Pan Flute
-      case 77: // Blown Bottle
-      case 78: // Shakuhachi
-      case 79: // Whistle
-      case 80: // Ocarina
-      case 82: // Lead case 2: // (sawtooth)
-      case 112: // Shanai
+      case 52: // Choir Aahs
+      case 53: // Voice Oohs
+      case 54: // Synth Voice
+      case 55: // Orchestra Hit
+      case 72: // Piccolo
+      case 73: // Flute
+      case 74: // Recorder
+      case 75: // Pan Flute
+      case 76: // Blown Bottle
+      case 77: // Shakuhachi
+      case 78: // Whistle
+      case 79: // Ocarina
+      case 81: // Lead case 1: // (sawtooth)
+      case 111: // Shanai
          return Instrument.Sawtooth;
 
-      case 116: // Woodblock
+      case 115: // Woodblock
          return Instrument.WoodBlock;
 
-      case 117: // Taiko Drum
+      case 116: // Taiko Drum
          return Instrument.BassDrum;
 
-      case 97: // FX case 1: // (rain)
-      case 98: // FX case 2: // (soundtrack)
-      case 100: // FX case 4: // (atmosphere)
-      case 101: // FX case 5: // (brightness)
-      case 102: // FX case 6: // (goblins)
-      case 103: // FX case 7: // (echoes)
-      case 104: // FX case 8: // (sci-fi)
-      case 120: // Reverse Cymbal
-      case 121: // Guitar Fret Noise
-      case 122: // Breath Noise
-      case 123: // Seashore
-      case 124: // Bird Tweet
-      case 125: // Telephone Ring
-      case 126: // Helicopter
-      case 127: // Applause
-      case 128: // Gunshot
+      case 96: // FX case 0: // (rain)
+      case 97: // FX case 1: // (soundtrack)
+      case 99: // FX case 3: // (atmosphere)
+      case 100: // FX case 4: // (brightness)
+      case 101: // FX case 5: // (goblins)
+      case 102: // FX case 6: // (echoes)
+      case 103: // FX case 7: // (sci-fi)
+      case 119: // Reverse Cymbal
+      case 120: // Guitar Fret Noise
+      case 121: // Breath Noise
+      case 122: // Seashore
+      case 123: // Bird Tweet
+      case 124: // Telephone Ring
+      case 125: // Helicopter
+      case 126: // Applause
+      case 127: // Gunshot
       default:
          return Instrument.Nothing;
    }

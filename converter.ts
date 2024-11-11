@@ -59,7 +59,7 @@ export async function midiToBP(data: ArrayBuffer): Promise<string> {
 
          if('programChange' in event) {
             const program = (event as IMidiProgramChangeEvent).programChange.programNumber;
-            track.setMidiInstrument(program);
+            track.setMidiInstrument(program, event.channel as number);
          }
 
          if('controlChange' in event) {
