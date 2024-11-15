@@ -25,19 +25,25 @@ export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local'
    let lastControl = factorio.getEntityByDescription(musicBoxBP, 'controller');
 
    const midi = await parseArrayBuffer(data);
+   let tempo = 500000;
+   const division = midi.division;
+
+   // find tempo, assume single tempo for now
+   for(let midiTrack of midi.tracks) {
+      const tempoTrack = midiTrack.find(event => 'setTempo' in event) as IMidiSetTempoEvent | null;
+      if(tempoTrack != null) {
+         tempo = tempoTrack.setTempo.microsecondsPerQuarter;
+      }
+   }
+
    for(let [i, midiTrack] of midi.tracks.entries()) {
-      const track = new Track(midi.division);
+      const track = new Track(tempo, midi.division);
       for(let event of midiTrack) {
          track.updateDelta(event.delta)
 
          if('noteOn' in event) {
             const note = (event as IMidiNoteOnEvent).noteOn.noteNumber;
             track.pushNote(note);
-         }
-
-         if('setTempo' in event) {
-            const tempo = (event as IMidiSetTempoEvent).setTempo.microsecondsPerQuarter;
-            track.setTempo(tempo);
          }
 
          if('programChange' in event) {

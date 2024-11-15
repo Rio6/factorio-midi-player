@@ -53,7 +53,7 @@ const FACTORIO_INSTRUMENT_ID: {[instrument in Instrument]: number} = {
 };
 
 export default class Track {
-   instrument = Instrument.Piano;
+   instrument = Instrument.Nothing;
    volume = 1;
    tempo = 500000;
    division: number;
@@ -61,7 +61,8 @@ export default class Track {
    notes: [number, number][] = [];
    totalTime = 0;
 
-   constructor(division: number) {
+   constructor(tempo: number, division: number) {
+      this.tempo = tempo;
       this.division = division;
    }
 
@@ -83,22 +84,22 @@ export default class Track {
 
       const trackData = [];
       const timeData = [];
-      let trackIndex = -1;
 
       let noteShift = 0;
       for(let [note, time] of this.notes) {
+         let trackIndex = 0;
          let delay;
-         while(true) {
-            delay = deltaToTick(time - timeData[trackIndex]);
-            if(trackIndex >= 0 && delay >= 0) {
-               break;
-            }
 
-            trackIndex += 1;
+         while(trackIndex < 100) {
             if(timeData[trackIndex] == null) {
                trackData.push([])
                timeData.push(0);
+               delay = Math.max(deltaToTick(time), 1);
+            } else {
+               delay = deltaToTick(time - timeData[trackIndex]);
             }
+            if(delay > 0) break;
+            trackIndex++;
          }
 
          if(this.instrument == Instrument.WoodBlock) {
@@ -115,7 +116,6 @@ export default class Track {
 
          trackData[trackIndex].push(delay << 8 | (note + noteShift));
          timeData[trackIndex] = time;
-         trackIndex = 0;
       }
 
       return trackData;
@@ -127,10 +127,15 @@ export default class Track {
 
    getVolume(): number {
       let factor = 1;
-      if(this.instrument == Instrument.Square) {
-         factor = 0.2;
+      switch(this.instrument) {
+         case Instrument.Square:
+            factor = 0.2;
+            break;
+         case Instrument.DrumKit:
+            factor = 0.5;
+            break;
       }
-      return this.volume;
+      return this.volume * factor;
    }
 
    setMidiInstrument(program: number, channel: number) {
@@ -139,10 +144,6 @@ export default class Track {
 
    setMidiVolume(volume: number) {
       this.volume = volume / 127;
-   }
-
-   setTempo(tempo: number) {
-      this.tempo = tempo;
    }
 }
 
