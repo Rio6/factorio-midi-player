@@ -9,7 +9,7 @@ function init() {
       buttonElement.onclick = async () => {
          if(fileElement.files.length > 0) {
             const file = fileElement.files[0];
-            const bp = await midiToBP(await file.arrayBuffer());
+            const bp = await midiToBP(await file.arrayBuffer(), 'surface');
             outputElement.textContent = bp;
          }
       };

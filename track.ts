@@ -1,3 +1,5 @@
+const TICK_PER_US = 60 / 1000000;
+const FACTORIO_PLAYER_DELAY = 3;
 const FACTORIO_NOTE_OFFSET = -28;
 
 enum Instrument {
@@ -52,19 +54,53 @@ const FACTORIO_INSTRUMENT_ID: {[instrument in Instrument]: number} = {
 
 export default class Track {
    instrument = Instrument.Piano;
-   notes: [number, number][] = [];
    volume = 1;
+   tempo = 500000;
+   division: number;
 
-   push(note: number, delay: number) {
-      this.notes.push([note, delay]);
+   notes: [number, number][] = [];
+   totalTime = 0;
+
+   constructor(division: number) {
+      this.division = division;
    }
 
-   data(): number[] { 
-      if(this.instrument == Instrument.Nothing) return [];
+   updateDelta(delta: number) {
+      this.totalTime += delta;
+   }
 
+   pushNote(note: number) {
+      this.notes.push([note, this.totalTime]);
+   }
+
+   data(): number[][] {
+      if(this.instrument == Instrument.Nothing) return [];
       const maxNote = MAX_NOTE[this.instrument];
+
+      const deltaToTick = (delta: number) => {
+         return Math.round(delta * this.tempo / this.division * TICK_PER_US) - FACTORIO_PLAYER_DELAY;
+      };
+
+      const trackData = [];
+      const timeData = [];
+      let trackIndex = -1;
+
       let noteShift = 0;
-      return this.notes.map(([note, delay]) => {
+      for(let [note, time] of this.notes) {
+         let delay;
+         while(true) {
+            delay = deltaToTick(time - timeData[trackIndex]);
+            if(trackIndex >= 0 && delay >= 0) {
+               break;
+            }
+
+            trackIndex += 1;
+            if(timeData[trackIndex] == null) {
+               trackData.push([])
+               timeData.push(0);
+            }
+         }
+
          if(this.instrument == Instrument.WoodBlock) {
             note = 16;
          } else if(this.instrument == Instrument.BassDrum) {
@@ -76,8 +112,13 @@ export default class Track {
             while(note + noteShift > maxNote) noteShift -= 12;
             while(note + noteShift < 1)       noteShift += 12;
          }
-         return delay << 8 | (note + noteShift);
-      });
+
+         trackData[trackIndex].push(delay << 8 | (note + noteShift));
+         timeData[trackIndex] = time;
+         trackIndex = 0;
+      }
+
+      return trackData;
    }
 
    getInstrumentID(): number {
@@ -85,6 +126,10 @@ export default class Track {
    }
 
    getVolume(): number {
+      let factor = 1;
+      if(this.instrument == Instrument.Square) {
+         factor = 0.2;
+      }
       return this.volume;
    }
 
@@ -96,10 +141,9 @@ export default class Track {
       this.volume = volume / 127;
    }
 
-   empty(): boolean {
-      return this.notes.length === 0;
+   setTempo(tempo: number) {
+      this.tempo = tempo;
    }
-
 }
 
 function midiToFactorioInstrument(program: number, channel: number) {
@@ -234,7 +278,8 @@ function midiToFactorioInstrument(program: number, channel: number) {
       case 79: // Ocarina
       case 81: // Lead case 1: // (sawtooth)
       case 111: // Shanai
-         return Instrument.Sawtooth;
+         //return Instrument.Sawtooth;
+         return Instrument.Square;
 
       case 115: // Woodblock
          return Instrument.WoodBlock;
