@@ -2,7 +2,7 @@ const TICK_PER_US = 60 / 1000000;
 const FACTORIO_PLAYER_DELAY = 3;
 const FACTORIO_NOTE_OFFSET = -28;
 
-enum Instrument {
+export enum Instrument {
    Nothing,
    Piano,
    DrumKit,
@@ -59,7 +59,7 @@ export default class Track {
    division: number;
 
    notes: [number, number][] = [];
-   totalTime = 0;
+   totalTime = FACTORIO_NOTE_OFFSET + 1;
 
    constructor(tempo: number, division: number) {
       this.tempo = tempo;
@@ -126,16 +126,7 @@ export default class Track {
    }
 
    getVolume(): number {
-      let factor = 1;
-      switch(this.instrument) {
-         case Instrument.Square:
-            factor = 0.2;
-            break;
-         case Instrument.DrumKit:
-            factor = 0.5;
-            break;
-      }
-      return this.volume * factor;
+      return this.volume;
    }
 
    setMidiInstrument(program: number, channel: number) {

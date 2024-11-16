@@ -2,6 +2,7 @@ import { parseArrayBuffer } from 'midi-json-parser';
 import Track from './track';
 import { IMidiSetTempoEvent, IMidiNoteOnEvent, IMidiProgramChangeEvent, IMidiControlChangeEvent } from 'midi-json-parser-worker';
 import * as factorio from './factorio';
+import { equalizeBP } from './equalizer';
 import musicBoxBPString from './music-box.bp';
 
 type BluePrint = factorio.BluePrint;
@@ -103,6 +104,8 @@ export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local'
          offsetX -= 2;
       }
    }
+
+   equalizeBP(musicBoxBP);
 
    return factorio.encodeBP(musicBoxBP);
 }
