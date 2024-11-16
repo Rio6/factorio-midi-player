@@ -2,11 +2,20 @@
 <html>
    <head>
       <script src="dist/bundle.js"></script>
+      <link rel="stylesheet" href="index.css">
    </head>
    <body>
+      <h1>Factorio Midi Player</h1>
       <input type="file" id="midi-upload" />
-      <button id="generate-button">Generate</button>
-      <br />
-      <div id="bp-output"></div>
+      <select id="speaker-mode" class="button">
+         <option value="local">Local</option>
+         <option value="surface">Surface</option>
+         <option value="global">Global</option>
+      </select>
+      <button id="generate-button" class="button">Generate</button>
+      <div class="border">
+         <h2>Output</h2>
+         <div id="bp-output"></div>
+      </div>
    </body>
 </html>
