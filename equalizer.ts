@@ -17,7 +17,7 @@ const VOLUME_FACTOR: {[instrument in Instrument]: number} = {
    [Instrument.BassDrum]:      1.0,
 };
 
-export function equalizeBP(bp: BluePrint) {
+export function equalizeBP(bp: BluePrint, volume: number) {
    const speakers = bp.blueprint.entities.filter((ent: BluePrint) => ent.name === 'programmable-speaker');
    let maxVolume = 0.0;
    for(const speaker of speakers) {
@@ -28,6 +28,6 @@ export function equalizeBP(bp: BluePrint) {
       maxVolume = Math.max(maxVolume, speaker.parameters.playback_volume);
    }
    for(const speaker of speakers) {
-      speaker.parameters.playback_volume /= maxVolume;
+      speaker.parameters.playback_volume *= volume / maxVolume;
    }
 }

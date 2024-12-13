@@ -9,7 +9,7 @@ type BluePrint = factorio.BluePrint;
 
 const musicBoxBPTemplate = factorio.decodeBP(musicBoxBPString);
 
-export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local'): Promise<string> {
+export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local', volume: number = 1.0): Promise<string> {
    const musicBoxBP = factorio.filterBP(
       musicBoxBPTemplate,
       ent => ['key', 'controller', 'controller-misc'].includes(ent.player_description)
@@ -105,7 +105,7 @@ export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local'
       }
    }
 
-   equalizeBP(musicBoxBP);
+   equalizeBP(musicBoxBP, volume);
 
    return factorio.encodeBP(musicBoxBP);
 }
