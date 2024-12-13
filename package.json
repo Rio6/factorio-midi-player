@@ -2,7 +2,7 @@
   "name": "factorio-midi-player",
   "version": "1.0.0",
   "scripts": {
-    "build": "webpack && cp index.html index.css dist/",
+    "build": "webpack && cp static/* dist/",
     "watch": "webpack watch"
   },
   "dependencies": {
