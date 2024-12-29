@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+   <head>
+      <script src="bundle.js"></script>
+      <link rel="stylesheet" href="index.css">
+      <title>Factorio Midi Player</title>
+   </head>
+   <body>
+      <h1>FACTORIO MIDI PLAYER</h1>
+      <div class="border">
+         <div class="flex">
+            <div class="input">
+               Surface
+               <select id="speaker-mode" class="button">
+                  <option value="local">Local</option>
+                  <option value="surface">Surface</option>
+                  <option value="global">Global</option>
+               </select>
+            </div>
+            <div class="input">
+               Loop
+               <select id="loop" class="button">
+                  <option value="once">Once</option>
+                  <option value="forever">Forever</option>
+               </select>
+            </div>
+            <div class="input">
+               Volume
+               <input type="range" id="volume" min="0" max="100" value="100" />
+            </div>
+            <div class="input">
+               MIDI File
+               <input type="file" id="midi-upload" />
+            </div>
+            <div class="input" style="flex-grow: 1"></div>
+            <div class="input">
+               <button id="generate-button" class="button">Generate</button>
+               <button id="copy-button" class="button">Copy</button>
+            </div>
+         </div>
+         <h2>Output</h2>
+         <div id="bp-output"></div>
+      </div>
+   </body>
+</html>
