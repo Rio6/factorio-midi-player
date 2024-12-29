@@ -9,18 +9,23 @@ type BluePrint = factorio.BluePrint;
 
 const musicBoxBPTemplate = factorio.decodeBP(musicBoxBPString);
 
-export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local', volume: number = 1.0): Promise<string> {
+export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local', volume: number = 1.0, loop: boolean = true): Promise<string> {
+   const musicBoxFilter = ['key', 'controller', 'controller-input', 'controller-misc'];
+   if(loop) musicBoxFilter.push('controller-loop', 'controller-loop-port');
    const musicBoxBP = factorio.filterBP(
       musicBoxBPTemplate,
-      ent => ['key', 'controller', 'controller-misc'].includes(ent.player_description)
+      ent => musicBoxFilter.includes(ent.player_description),
    );
 
    let maxEntityID = 0;
-   let offsetX = 0;
+   let playerCount = 0;
+   let totalSignals = 0;
 
    const [keyCell, _] = factorio.genCell([...Array(2000)].map((_, i) => i+1));
    const keyEnt = factorio.getEntityByDescription(musicBoxBP, 'key');
    keyEnt.control_behavior = keyCell;
+
+   const loopEnt = factorio.getEntityByDescription(musicBoxBP, 'controller-loop-port');
 
    let lastKey = keyEnt;
    let lastControl = factorio.getEntityByDescription(musicBoxBP, 'controller');
@@ -81,7 +86,7 @@ export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local'
          for(const ent of trackBP.blueprint.entities) {
             maxTrackId = Math.max(maxTrackId, ent.entity_number);
             ent.entity_number += maxEntityID;
-            ent.position.x += offsetX;
+            ent.position.x -= playerCount * 2;
             musicBoxBP.blueprint.entities.push(ent);
          }
 
@@ -93,16 +98,33 @@ export async function midiToBP(data: ArrayBuffer, playbackMode: string = 'local'
 
          const keyPort = factorio.getEntityByDescription(trackBP, 'key-port');
          const controlPort = factorio.getEntityByDescription(trackBP, 'control-port');
+
          musicBoxBP.blueprint.wires.push(
             [lastKey.entity_number, 1, keyPort.entity_number, 1],
             [lastControl.entity_number, 2, controlPort.entity_number, 2],
          );
+
+         if(loop && playerCount === 0) {
+            musicBoxBP.blueprint.wires.push(
+               [loopEnt.entity_number, 1, keyPort.entity_number, 3],
+            );
+         } else {
+            musicBoxBP.blueprint.wires.push(
+               [lastKey.entity_number, 3, keyPort.entity_number, 3],
+            );
+         }
+
          lastKey = keyPort;
          lastControl = controlPort;
 
          maxEntityID += maxTrackId;
-         offsetX -= 2;
+         totalSignals += signalCount;
+         playerCount++;
       }
+   }
+
+   if(loop) {
+      loopEnt.control_behavior.decider_conditions.conditions[0].constant = totalSignals + playerCount;
    }
 
    equalizeBP(musicBoxBP, volume);
